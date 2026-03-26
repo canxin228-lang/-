@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authMiddleware, AuthRequest, supabaseAdmin } from '../middleware/auth';
+import { authMiddleware, AuthRequest, supabaseAdmin } from '../middleware/auth.js';
 
 const router = Router();
 router.use(authMiddleware);
