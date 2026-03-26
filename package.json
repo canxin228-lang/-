@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "server": "tsx server/index.ts",
+    "server": "tsx \"api/[...path].ts\"",
     "dev:all": "concurrently \"npm run server\" \"npm run dev:frontend\""
   },
   "dependencies": {
