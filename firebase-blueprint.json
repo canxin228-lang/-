@@ -1,0 +1,148 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile and global preferences.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "photoURL": { "type": "string", "format": "uri" },
+        "expectedPosition": { "type": "string" },
+        "expectedLocations": { "type": "array", "items": { "type": "string" } },
+        "salaryMin": { "type": "number" },
+        "salaryMax": { "type": "number" },
+        "blockedKeywords": { "type": "string" },
+        "autoApply": { "type": "boolean" },
+        "aiRefinement": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Resume": {
+      "title": "Resume",
+      "description": "A version of the user's resume.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "content": { "type": "string" },
+        "isDefault": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "title"]
+    },
+    "Platform": {
+      "title": "Job Platform",
+      "description": "Connected job platform account.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "platformId": { "type": "string" },
+        "name": { "type": "string" },
+        "account": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "idle"] },
+        "lastSync": { "type": "string" },
+        "logo": { "type": "string", "format": "uri" }
+      },
+      "required": ["uid", "platformId", "name"]
+    },
+    "ApplicationLog": {
+      "title": "Application Log",
+      "description": "A record of a job application.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "position": { "type": "string" },
+        "company": { "type": "string" },
+        "location": { "type": "string" },
+        "platform": { "type": "string" },
+        "time": { "type": "string" },
+        "status": { "type": "string", "enum": ["success", "read", "rejected"] },
+        "details": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "position", "company"]
+    },
+    "Opportunity": {
+      "title": "Job Opportunity",
+      "description": "A matched job opportunity.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "company": { "type": "string" },
+        "location": { "type": "string" },
+        "salary": { "type": "string" },
+        "matchRate": { "type": "number" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "logoUrl": { "type": "string", "format": "uri" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "company"]
+    },
+    "Interview": {
+      "title": "Interview",
+      "description": "A scheduled interview.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "company": { "type": "string" },
+        "position": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "type": { "type": "string", "enum": ["video", "onsite"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "company", "position"]
+    },
+    "Task": {
+      "title": "Automation Task",
+      "description": "A running automation task.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "title": { "type": "string" },
+        "platforms": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["running", "paused"] },
+        "progress": { "type": "number" },
+        "appliedCount": { "type": "number" },
+        "totalCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "title"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents."
+    },
+    "/resumes/{resumeId}": {
+      "schema": "Resume",
+      "description": "User resumes."
+    },
+    "/platforms/{platformId}": {
+      "schema": "Platform",
+      "description": "Connected platforms."
+    },
+    "/logs/{logId}": {
+      "schema": "ApplicationLog",
+      "description": "Application history logs."
+    },
+    "/opportunities/{opportunityId}": {
+      "schema": "Opportunity",
+      "description": "Global or matched opportunities."
+    },
+    "/interviews/{interviewId}": {
+      "schema": "Interview",
+      "description": "Scheduled interviews."
+    },
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Automation tasks."
+    }
+  }
+}
