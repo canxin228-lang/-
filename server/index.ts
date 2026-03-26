@@ -2,13 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-import usersRouter from './routes/users';
-import resumesRouter from './routes/resumes';
-import platformsRouter from './routes/platforms';
-import logsRouter from './routes/logs';
-import opportunitiesRouter from './routes/opportunities';
-import interviewsRouter from './routes/interviews';
-import tasksRouter from './routes/tasks';
+import usersRouter from './routes/users.js';
+import resumesRouter from './routes/resumes.js';
+import platformsRouter from './routes/platforms.js';
+import logsRouter from './routes/logs.js';
+import opportunitiesRouter from './routes/opportunities.js';
+import interviewsRouter from './routes/interviews.js';
+import tasksRouter from './routes/tasks.js';
 
 // 加载环境变量
 dotenv.config();
