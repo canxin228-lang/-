@@ -94,6 +94,33 @@ export const platformApi = {
   delete: (id: string) => request<any>(`/platforms/${id}`, {
     method: 'DELETE',
   }),
+
+  /** 使用 Cookie 连接平台（真实对接） */
+  connect: (data: { platformType: string; cookie: string; platformName?: string }) =>
+    request<any>('/platforms/connect', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** 验证平台连接状态 */
+  verify: (id: string) => request<any>(`/platforms/${id}/verify`),
+
+  /** 搜索岗位 */
+  searchJobs: (id: string, params: { keyword: string; city?: string; salary?: string; page?: number }) =>
+    request<any>(`/platforms/${id}/search-jobs`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    }),
+
+  /** 投递简历 */
+  apply: (id: string, data: any) =>
+    request<any>(`/platforms/${id}/apply`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** 获取平台实时状态 */
+  getStatus: (id: string) => request<any>(`/platforms/${id}/status`),
 };
 
 // ============================================================

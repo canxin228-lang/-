@@ -18,12 +18,14 @@ router.get('/', async (req: AuthRequest, res) => {
     let query = supabaseAdmin
       .from('logs')
       .select('*', { count: 'exact' })
-      .eq('uid', req.user!.id)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limitNum - 1);
+      .eq('uid', req.user!.id);
 
     if (status) query = query.eq('status', status);
     if (platform) query = query.eq('platform', platform);
+
+    query = query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limitNum - 1);
 
     const { data, error, count } = await query;
 

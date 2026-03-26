@@ -170,3 +170,33 @@ CREATE TRIGGER update_users_updated_at
 CREATE TRIGGER update_resumes_updated_at
   BEFORE UPDATE ON resumes
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- 平台集成增强（v2 迁移）
+-- ============================================================
+
+-- 为 platforms 表增加真实连接所需字段
+ALTER TABLE platforms ADD COLUMN IF NOT EXISTS credentials JSONB DEFAULT '{}';
+ALTER TABLE platforms ADD COLUMN IF NOT EXISTS connection_status TEXT DEFAULT 'disconnected';
+ALTER TABLE platforms ADD COLUMN IF NOT EXISTS platform_user_name TEXT;
+ALTER TABLE platforms ADD COLUMN IF NOT EXISTS last_verified_at TIMESTAMPTZ;
+ALTER TABLE platforms ADD COLUMN IF NOT EXISTS error_message TEXT;
+ALTER TABLE platforms ADD COLUMN IF NOT EXISTS platform_id TEXT;
+
+-- 岗位搜索结果缓存表
+CREATE TABLE IF NOT EXISTS job_search_results (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  uid UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  platform_id UUID REFERENCES platforms(id) ON DELETE CASCADE,
+  job_data JSONB NOT NULL DEFAULT '{}',
+  applied BOOLEAN DEFAULT false,
+  apply_result JSONB,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_job_search_uid ON job_search_results(uid);
+CREATE INDEX IF NOT EXISTS idx_job_search_platform ON job_search_results(platform_id);
+
+ALTER TABLE job_search_results ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "用户只能读写自己的搜索结果" ON job_search_results
+  FOR ALL USING (auth.uid() = uid);

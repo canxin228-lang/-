@@ -55,6 +55,10 @@ export function ResumeConfig() {
     ai_refinement: false
   });
   const [refiningId, setRefiningId] = useState<string | null>(null);
+  
+  // 预览与 AI 润色弹窗状态
+  const [viewingResume, setViewingResume] = useState<any>(null);
+  const [aiSuggestion, setAiSuggestion] = useState<{resume: any, original: string, refined: string} | null>(null);
 
   // 弹窗控制状态
   const [showJobPicker, setShowJobPicker] = useState(false);
@@ -158,19 +162,31 @@ export function ResumeConfig() {
     if (!user) return;
     setRefiningId(resume.id);
     try {
-      const refinedContent = await geminiService.refineResume(resume.content || resume.description);
-      await resumeApi.update(resume.id, {
-        description: (refinedContent || '').slice(0, 100) + '...',
-        content: refinedContent,
-      });
-      const updatedResumes = await resumeApi.list();
-      setResumes(updatedResumes);
-      alert('AI 润色完成！');
+      const original = resume.content || resume.description || '';
+      const refinedContent = await geminiService.refineResume(original);
+      setAiSuggestion({ resume, original, refined: refinedContent });
     } catch (error) {
       console.error('AI 润色失败:', error);
       alert('AI 润色失败，请稍后重试');
     } finally {
       setRefiningId(null);
+    }
+  };
+
+  const acceptAiSuggestion = async () => {
+    if (!aiSuggestion) return;
+    try {
+      const { resume, refined } = aiSuggestion;
+      await resumeApi.update(resume.id, {
+        description: (refined || '').slice(0, 100) + '...',
+        content: refined,
+      });
+      const updatedResumes = await resumeApi.list();
+      setResumes(updatedResumes);
+      alert('优化已应用！');
+      setAiSuggestion(null);
+    } catch (err) {
+      alert('应用失败，请重试');
     }
   };
 
@@ -274,6 +290,13 @@ export function ResumeConfig() {
                 </div>
                 <p className="text-sm text-on-surface-variant mb-4 line-clamp-2">{resume.description}</p>
                 <div className={resume.is_default ? "flex gap-2" : "flex gap-2 opacity-60 group-hover:opacity-100 transition-opacity"}>
+                  <button
+                    onClick={() => setViewingResume(resume)}
+                    className="p-2 bg-surface-container-high hover:bg-surface-variant text-on-surface rounded-lg transition-colors"
+                    title="预览内容"
+                  >
+                    <span className="material-symbols-outlined text-sm">visibility</span>
+                  </button>
                   <button
                     onClick={() => handleAIRefine(resume)}
                     disabled={refiningId === resume.id}
@@ -542,6 +565,111 @@ export function ResumeConfig() {
           onClick={() => { setShowJobPicker(false); setShowCityPicker(false); }}
         />
       )}
+
+      {/* ========== 简历预览弹窗 ========== */}
+      <AnimatePresence>
+        {viewingResume && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-surface-container-lowest w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-outline-variant/10 bg-surface-container-low">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-primary text-3xl">{getFileIcon(viewingResume)}</span>
+                  <div>
+                    <h3 className="font-bold text-xl">{viewingResume.title}</h3>
+                    <p className="text-sm text-outline tracking-wider">{viewingResume.file_name || '无文件上传记录'}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setViewingResume(null)}
+                  className="material-symbols-outlined text-outline hover:text-on-surface bg-transparent border-none text-3xl"
+                >close</button>
+              </div>
+              <div className="p-8 overflow-y-auto flex-1 bg-surface whitespace-pre-wrap font-mono text-sm leading-relaxed text-on-surface-variant">
+                {viewingResume.content ? viewingResume.content : viewingResume.description}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ========== AI 润色建议弹窗 ========== */}
+      <AnimatePresence>
+        {aiSuggestion && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-surface-container-lowest w-full max-w-5xl h-[85vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-6 bg-gradient-to-r from-primary/10 to-transparent border-b border-primary/20">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-3xl animate-pulse">auto_fix_high</span>
+                  <h3 className="font-bold text-xl text-primary">AI 智能润色建议</h3>
+                </div>
+                <button
+                  onClick={() => setAiSuggestion(null)}
+                  className="material-symbols-outlined text-outline hover:text-on-surface bg-transparent border-none text-2xl"
+                >close</button>
+              </div>
+              
+              <div className="flex-1 flex flex-col md:flex-row overflow-hidden divide-y md:divide-y-0 md:divide-x divide-outline-variant/20">
+                {/* 原版 */}
+                <div className="flex-1 flex flex-col bg-surface-container-low/30 overflow-hidden">
+                  <div className="p-4 bg-surface-container-low text-sm font-bold tracking-wider text-outline uppercase">
+                    原版内容
+                  </div>
+                  <div className="p-6 overflow-y-auto whitespace-pre-wrap font-sans text-sm leading-relaxed text-on-surface-variant opacity-75">
+                    {aiSuggestion.original}
+                  </div>
+                </div>
+                {/* 优化版 */}
+                <div className="flex-1 flex flex-col bg-primary/5 overflow-hidden">
+                  <div className="p-4 bg-primary/10 text-sm font-bold tracking-wider text-primary uppercase flex justify-between">
+                    优化后内容
+                    <span className="text-[10px] bg-primary/20 px-2 py-0.5 rounded-full normal-case">Gemini 3.1 Pro 强力加持</span>
+                  </div>
+                  <div className="p-6 overflow-y-auto whitespace-pre-wrap font-sans text-sm leading-relaxed text-on-surface font-medium">
+                    {aiSuggestion.refined}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-outline-variant/10 bg-surface-container-low flex justify-end gap-4">
+                <button
+                  onClick={() => setAiSuggestion(null)}
+                  className="px-6 py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-variant transition-colors font-bold"
+                >
+                  放弃修改
+                </button>
+                <button
+                  onClick={acceptAiSuggestion}
+                  className="px-8 py-2.5 bg-primary text-on-primary font-bold rounded-xl shadow-lg hover:bg-primary-container transition-all flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">check</span>
+                  应用此优化
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

@@ -1,6 +1,9 @@
+import dotenv from 'dotenv';
+// 必须在所有本地模块之前加载环境变量
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 
 import usersRouter from './routes/users.js';
 import resumesRouter from './routes/resumes.js';
