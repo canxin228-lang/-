@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { createClient } from '@supabase/supabase-js';
 
 // 使用 service_role key 创建管理员级 Supabase 客户端
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder';
 
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -20,6 +20,10 @@ export interface AuthRequest extends Request {
  * 从请求头提取 Supabase JWT token 并验证
  */
 export async function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
+  if (supabaseUrl === 'https://placeholder.supabase.co') {
+    return res.status(500).json({ error: '🚨 Vercel 环境崩溃防线启动：您尚未在 Vercel 后台配置 VITE_SUPABASE_URL 或 SUPABASE_SERVICE_ROLE_KEY，请检查设置。' });
+  }
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

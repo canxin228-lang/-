@@ -106,7 +106,7 @@ export const platformApi = {
   verify: (id: string) => request<any>(`/platforms/${id}/verify`),
 
   /** 搜索岗位 */
-  searchJobs: (id: string, params: { keyword: string; city?: string; salary?: string; page?: number }) =>
+  searchJobs: (id: string, params: { keyword: string; city?: string; salary?: string; page?: number; companySize?: string }) =>
     request<any>(`/platforms/${id}/search-jobs`, {
       method: 'POST',
       body: JSON.stringify(params),

@@ -60,9 +60,11 @@ export function Opportunities() {
     setJobs([]);
     
     try {
+      const savedCompanySize = localStorage.getItem(`company_size_${user!.id}`);
       const result = await platformApi.searchJobs(selectedPlatformId, {
         keyword: searchQuery,
         city: searchCity,
+        companySize: savedCompanySize && savedCompanySize !== '不限' ? savedCompanySize : undefined,
       });
       setJobs(result.jobs || []);
       if (result.jobs?.length === 0) {

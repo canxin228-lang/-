@@ -351,7 +351,7 @@ router.get('/:id/verify', async (req: AuthRequest, res) => {
 router.post('/:id/search-jobs', async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
-    const { keyword, city, salary, page } = req.body;
+    const { keyword, city, salary, page, companySize } = req.body;
 
     if (!keyword) {
       return res.status(400).json({ error: '请输入搜索关键词' });
@@ -387,7 +387,7 @@ router.post('/:id/search-jobs', async (req: AuthRequest, res) => {
     }
 
     const cookie = decryptCookie(platform.credentials.cookie);
-    const jobs = await connector.searchJobs(cookie, { keyword, city, salary, page });
+    const jobs = await connector.searchJobs(cookie, { keyword, city, salary, page, companySize });
 
     return res.json({ jobs, total: jobs.length });
   } catch (err: any) {

@@ -12,6 +12,7 @@ export function Dashboard() {
     visibilityCount: 0,
     interviewCount: 0
   });
+  const [startingTask, setStartingTask] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -38,6 +39,29 @@ export function Dashboard() {
 
     fetchData();
   }, [user]);
+
+  const handleStartAutoApply = async () => {
+    if (!user) return;
+    setStartingTask(true);
+    try {
+      await taskApi.create({
+        title: '智能全网并发投递',
+        platforms: ['Boss直聘', '智联招聘'],
+        status: 'running',
+        progress: 5,
+        applied_count: 0,
+        total_count: 50
+      });
+      alert('投递引擎已就绪：正在从底层连接平台发送握手包，请耐心等待任务完成。');
+      // 重新加载列表
+      const updatedTasks = await taskApi.list(5);
+      setTasks(updatedTasks);
+    } catch (err: any) {
+      alert(`挂载自动化任务失败: ${err.message || '未知网络错误'}`);
+    } finally {
+      setStartingTask(false);
+    }
+  };
 
   return (
     <div className="space-y-10">
@@ -99,7 +123,21 @@ export function Dashboard() {
               <span className="material-symbols-outlined">bolt</span>
               自动化投递任务
             </h3>
-            <button className="text-primary text-sm font-medium hover:underline">查看全部</button>
+            <div className="flex gap-4 items-center">
+              <button
+                onClick={handleStartAutoApply}
+                disabled={startingTask}
+                className="bg-primary hover:bg-primary-container text-on-primary shadow-md hover:shadow-lg transition-all rounded-xl px-5 py-2.5 text-sm font-bold flex items-center gap-2 disabled:opacity-50 active:scale-95"
+              >
+                {startingTask ? (
+                  <span className="animate-spin material-symbols-outlined text-sm">sync</span>
+                ) : (
+                  <span className="material-symbols-outlined text-sm">play_arrow</span>
+                )}
+                启动智能双擎投递
+              </button>
+              <button className="text-primary text-sm font-medium hover:underline">查看日志</button>
+            </div>
           </div>
           
           <div className="space-y-4">

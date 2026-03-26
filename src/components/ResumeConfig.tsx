@@ -75,7 +75,9 @@ export function ResumeConfig() {
         ]);
         setResumes(resumesData);
         if (userData) {
-          setPreferences((prev: any) => ({ ...prev, ...userData }));
+          // 读取本地存储中的公司规模（避免改动云数据库 schema）
+          const savedSize = localStorage.getItem(`company_size_${user.id}`) || '不限';
+          setPreferences((prev: any) => ({ ...prev, ...userData, company_size: savedSize }));
         }
       } catch (error) {
         console.error('加载简历配置失败:', error);
@@ -151,6 +153,10 @@ export function ResumeConfig() {
         auto_apply: preferences.auto_apply,
         ai_refinement: preferences.ai_refinement,
       });
+      // 存储公司规模
+      if (preferences.company_size) {
+        localStorage.setItem(`company_size_${user.id}`, preferences.company_size);
+      }
       alert('配置已保存');
     } catch (error) {
       console.error('保存配置失败:', error);
@@ -461,27 +467,42 @@ export function ResumeConfig() {
                 </AnimatePresence>
               </div>
 
-              {/* 薪资范围 */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">薪资范围</label>
-                <div className="flex items-center gap-4">
+              {/* 薪资范围与公司规模 */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">薪资范围</label>
+                  <div className="flex items-center gap-4">
+                    <select
+                      className="flex-1 bg-surface-container-high border-none rounded-xl p-4 text-sm focus:ring-0"
+                      value={preferences.salary_min}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPreferences({ ...preferences, salary_min: Number(e.target.value) })}
+                    >
+                      {[3,5,8,10,15,20,25,30,40,50].map(v => (
+                        <option key={v} value={v}>{v}K</option>
+                      ))}
+                    </select>
+                    <span className="text-on-surface-variant font-medium">至</span>
+                    <select
+                      className="flex-1 bg-surface-container-high border-none rounded-xl p-4 text-sm focus:ring-0"
+                      value={preferences.salary_max}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPreferences({ ...preferences, salary_max: Number(e.target.value) })}
+                    >
+                      {[5,8,10,15,20,25,30,40,50,60,80,100].map(v => (
+                        <option key={v} value={v}>{v === 100 ? '100K+' : `${v}K`}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">目标公司规模 (人数)</label>
                   <select
-                    className="flex-1 bg-surface-container-high border-none rounded-xl p-4 text-sm focus:ring-0"
-                    value={preferences.salary_min}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPreferences({ ...preferences, salary_min: Number(e.target.value) })}
+                    className="w-full bg-surface-container-high border-none rounded-xl p-4 text-sm focus:ring-0"
+                    value={preferences.company_size || '不限'}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPreferences({ ...preferences, company_size: e.target.value })}
                   >
-                    {[3,5,8,10,15,20,25,30,40,50].map(v => (
-                      <option key={v} value={v}>{v}K</option>
-                    ))}
-                  </select>
-                  <span className="text-on-surface-variant font-medium">至</span>
-                  <select
-                    className="flex-1 bg-surface-container-high border-none rounded-xl p-4 text-sm focus:ring-0"
-                    value={preferences.salary_max}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPreferences({ ...preferences, salary_max: Number(e.target.value) })}
-                  >
-                    {[5,8,10,15,20,25,30,40,50,60,80,100].map(v => (
-                      <option key={v} value={v}>{v === 100 ? '100K+' : `${v}K`}</option>
+                    {['不限', '0-20人', '20-99人', '100-499人', '500-999人', '1000-9999人', '10000人以上'].map(scale => (
+                      <option key={scale} value={scale}>{scale}</option>
                     ))}
                   </select>
                 </div>

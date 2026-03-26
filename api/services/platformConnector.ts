@@ -21,6 +21,7 @@ export interface JobSearchParams {
   city?: string;
   salary?: string;
   page?: number;
+  companySize?: string;
 }
 
 export interface JobResult {
@@ -103,6 +104,20 @@ class BossConnector {
 
       if (params.salary) {
         query.set('salary', params.salary);
+      }
+      
+      if (params.companySize && params.companySize !== '不限') {
+        const bossScaleMap: Record<string, string> = {
+          '0-20人': '301',
+          '20-99人': '302',
+          '100-499人': '303',
+          '500-999人': '304',
+          '1000-9999人': '305',
+          '10000人以上': '306',
+        };
+        if (bossScaleMap[params.companySize]) {
+          query.set('scale', bossScaleMap[params.companySize]);
+        }
       }
 
       const resp = await fetch(
@@ -260,7 +275,18 @@ class ZhilianConnector {
         throw new Error(data.message || '搜索请求被拒绝');
       }
 
-      const results = data.data?.results || [];
+      let results = data.data?.results || [];
+
+      // 本地后置过滤公司规模（智联的枚举较多变，因此做本地包含判断）
+      if (params.companySize && params.companySize !== '不限') {
+        results = results.filter((item: any) => {
+          const sizeName = item.company?.size?.name || '';
+          if (!sizeName) return true;
+          const cp = params.companySize!.replace('人', '');
+          const sn = sizeName.replace('人', '');
+          return sn.includes(cp) || cp.includes(sn);
+        });
+      }
 
       return results.map((item: any) => ({
         jobId: item.number || item.positionId || '',
