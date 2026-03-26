@@ -37,7 +37,12 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 启动服务器
-app.listen(PORT, () => {
-  console.log(`🚀 后端服务器运行在 http://localhost:${PORT}`);
-});
+// 启动服务器 (仅在非 Vercel 环境下才执行 listen, Vercel 会自己接管)
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`🚀 后端服务器运行在 http://localhost:${PORT}`);
+  });
+}
+
+// 供 Vercel Serverless 函数使用
+export default app;
