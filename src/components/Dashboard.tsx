@@ -136,7 +136,7 @@ export function Dashboard() {
                 )}
                 启动智能双擎投递
               </button>
-              <button className="text-primary text-sm font-medium hover:underline">查看日志</button>
+              <button onClick={() => window.location.href='/#logs'} className="text-primary text-sm font-medium hover:underline">查看日志</button>
             </div>
           </div>
           
